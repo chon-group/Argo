@@ -1,12 +1,16 @@
 package group.chon.agent.argo;
 
+import group.chon.agent.argo.core.FilterActionEnum;
+import group.chon.agent.argo.core.FilterActionProcessor;
+import group.chon.agent.argo.core.utils.ArgsUtils;
 import group.chon.javino.Javino;
+import jason.architecture.AgArch;
 import jason.asSyntax.Literal;
+import jason.asSyntax.Term;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import jason.architecture.AgArch;
 
 public class Argo extends AgArch {
 
@@ -21,6 +25,8 @@ public class Argo extends AgArch {
     private long limit = 0;
 
     public Boolean blocked = true;
+
+    private List<Term[]> filterConfigurations = new ArrayList<>();
 
     public static Argo getArgoArch(AgArch currentArch) {
         if (currentArch == null) {
@@ -52,13 +58,18 @@ public class Argo extends AgArch {
         try {
             if (this.javino.requestData(this.port, "getPercepts")) {
                 String rwPercepts = this.javino.getData();
-                if (rwPercepts.contains(";")) {
-                    String[] perception = rwPercepts.split(";");
-                    for (cont = 0; cont < perception.length; cont++) {
-                        jPercept.add(Literal.parseLiteral(perception[cont]));
+                if (rwPercepts != null && !rwPercepts.isEmpty()) {
+                    if (rwPercepts.contains(";")) {
+                        String[] perceptions = rwPercepts.split(";");
+                        if (!this.filterConfigurations.isEmpty()) {
+                            perceptions = FilterActionProcessor.doFilters(perceptions, this.filterConfigurations);
+                        }
+                        for (cont = 0; cont < perceptions.length; cont++) {
+                            jPercept.add(Literal.parseLiteral(perceptions[cont]));
+                        }
+                    } else {
+                        jPercept.add(Literal.parseLiteral(rwPercepts));
                     }
-                } else if (rwPercepts != null && !rwPercepts.isEmpty()) {
-                    jPercept.add(Literal.parseLiteral(rwPercepts));
                 } else {
                     this.getTS().getLogger().warning("[WARNING] There is no message coming from sensors.");
                 }
@@ -113,6 +124,16 @@ public class Argo extends AgArch {
 
     public void setBlocked(Boolean blocked) {
         this.blocked = blocked;
+    }
+
+    public void addFilter(Term[] filterConfiguration) {
+        String filterActionName = ArgsUtils.getInString(filterConfiguration[0]);
+        FilterActionEnum filterAction = FilterActionEnum.getFilterAction(filterActionName);
+        if (FilterActionEnum.REMOVE.equals(filterAction)) {
+            this.filterConfigurations = new ArrayList<>();
+        } else {
+            this.filterConfigurations.add(filterConfiguration);
+        }
     }
 
 }
