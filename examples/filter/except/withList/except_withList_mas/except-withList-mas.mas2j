@@ -1,0 +1,10 @@
+MAS except_withList_mas {
+
+    infrastructure: Centralised
+
+    agents:
+        bane agentArchClass jason.Argo;
+
+    aslSourcePath:
+        "examples/filter/except/withList/except_withList_mas/asl";
+}

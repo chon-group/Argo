@@ -1,10 +1,7 @@
 package group.chon.agent.argo.core;
 
 import group.chon.agent.argo.core.utils.ArgsUtils;
-import jason.asSyntax.ASSyntax;
-import jason.asSyntax.Literal;
-import jason.asSyntax.LogicalFormula;
-import jason.asSyntax.Term;
+import jason.asSyntax.*;
 import jason.asSyntax.parser.ParseException;
 import org.graalvm.polyglot.Context;
 import org.graalvm.polyglot.Value;
@@ -25,21 +22,60 @@ public class FilterActionProcessor {
             String filterActionName = ArgsUtils.getInString(filtersConfiguration[0]);
             FilterActionEnum filterAction = FilterActionEnum.getFilterAction(filterActionName);
             if (filterAction != null) {
-                Literal perceptionToBeFiltered = ASSyntax.parseLiteral(ArgsUtils.getInString(filtersConfiguration[1]));
-                if (FilterActionEnum.EXCEPT.equals(filterAction)) {
-                    perceptionsList = doExceptFilter(perceptions, filtersConfiguration, perceptionToBeFiltered, perceptionsList, i == 0);
-                } else if (FilterActionEnum.ONLY.equals(filterAction)) {
-                    perceptionsList = doOnlyFilter(perceptions, filtersConfiguration, perceptionToBeFiltered, perceptionsList, i == 0);
-                } else if (FilterActionEnum.VALUE.equals(filterAction)) {
-                    perceptionsList = doValueFilter(perceptions, filtersConfiguration, perceptionToBeFiltered, perceptionsList, i == 0);
+                if (filtersConfiguration[1].isList()) {
+                    ListTerm filterConfigurationListTerm = ASSyntax.parseList(ArgsUtils.getInString(filtersConfiguration[1]));
+                    if (FilterActionEnum.EXCEPT.equals(filterAction)) {
+                        for (Term filterConfigurationTerm : filterConfigurationListTerm) {
+                            perceptionsList = choiceFilterToBeDone(filterConfigurationTerm,
+                                    filtersConfiguration,
+                                    filterAction,
+                                    perceptionsList,
+                                    perceptions,
+                                    0);
+                        }
+                    } else {
+                        for (int j = 0; j < filterConfigurationListTerm.size(); j++) {
+                            perceptionsList = choiceFilterToBeDone(filterConfigurationListTerm.get(j),
+                                    filtersConfiguration,
+                                    filterAction,
+                                    perceptionsList,
+                                    perceptions,
+                                    j);
+                        }
+                    }
                 } else {
-                    // Erro.
-
+                    perceptionsList = choiceFilterToBeDone(filtersConfiguration[1],
+                            filtersConfiguration,
+                            filterAction,
+                            perceptionsList,
+                            perceptions,
+                            i);
                 }
             }
         }
 
         return perceptionsList.toArray(new String[0]);
+    }
+
+    private static List<String> choiceFilterToBeDone(Term filtersConfiguration,
+                                                     Term[] filtersConfigurationList,
+                                                     FilterActionEnum filterAction,
+                                                     List<String> perceptionsList,
+                                                     String[] perceptions,
+                                                     int i) throws ParseException, ScriptException {
+        Literal perceptionToBeFiltered = ASSyntax.parseLiteral(ArgsUtils.getInString(filtersConfiguration));
+
+        if (FilterActionEnum.EXCEPT.equals(filterAction)) {
+            perceptionsList = doExceptFilter(perceptions, filtersConfigurationList, perceptionToBeFiltered, perceptionsList, i == 0);
+        } else if (FilterActionEnum.ONLY.equals(filterAction)) {
+            perceptionsList = doOnlyFilter(perceptions, filtersConfigurationList, perceptionToBeFiltered, perceptionsList, i == 0);
+        } else if (FilterActionEnum.VALUE.equals(filterAction)) {
+            perceptionsList = doValueFilter(perceptions, filtersConfigurationList, perceptionToBeFiltered, perceptionsList, i == 0);
+        } else {
+            // Erro.
+
+        }
+        return perceptionsList;
     }
 
     public static List<String> getVariables(String condition) {

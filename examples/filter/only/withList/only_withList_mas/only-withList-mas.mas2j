@@ -1,0 +1,10 @@
+MAS only_withList_mas {
+
+    infrastructure: Centralised
+
+    agents:
+        bane agentArchClass jason.Argo;
+
+    aslSourcePath:
+        "examples/filter/only/withList/only_withList_mas/asl";
+}

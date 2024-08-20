@@ -1,0 +1,10 @@
+MAS except_withDontCare_mas {
+
+    infrastructure: Centralised
+
+    agents:
+        bane agentArchClass jason.Argo;
+
+    aslSourcePath:
+        "examples/filter/except/withDontCare/except_withDontCare_mas/asl";
+}

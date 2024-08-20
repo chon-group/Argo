@@ -11,6 +11,9 @@
 serialPort(Port) <-
 	.print("Ah, Mr. Anderson, I see you are as predictable in this world as you are in the other.");
 	.argo.port(Port);
+	.argo.filter(except, ledStatus(X));
+	.argo.filter(only, ledStatus(X));
+	.argo.filter(remove);
 	.argo.percepts(open);
 	.argo.limit(1000).
 
