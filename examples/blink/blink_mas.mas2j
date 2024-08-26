@@ -1,0 +1,10 @@
+MAS blink_mas {
+
+    infrastructure: Centralised
+
+    agents:
+        bane agentArchClass jason.Argo;
+
+    aslSourcePath:
+        "examples/blink/asl";
+}
