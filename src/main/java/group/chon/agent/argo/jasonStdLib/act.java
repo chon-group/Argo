@@ -28,8 +28,13 @@ public class act extends DefaultInternalAction {
                     if(PORTshortNAME==""){
                         PORTshortNAME="unknown";
                     }
-                    ts.getAg().getBB().remove(Literal.parseLiteral("port("+PORTshortNAME+",on);"));
-                    ts.getAg().getBB().add(Literal.parseLiteral("port("+PORTshortNAME+",off);"));
+                    //ts.getAg().getBB().remove(Literal.parseLiteral("port("+PORTshortNAME+",on);"));
+                    //ts.getAg().getBB().add(Literal.parseLiteral("port("+PORTshortNAME+",off);"));
+
+                    argoArch.removeBeliefsBySource("proprioception");
+                    argoArch.removeBeliefsBySource("interoception");
+                    argoArch.removeBeliefsBySource("exteroception");
+                    ts.getAg().getBB().add(Literal.parseLiteral("port("+PORTshortNAME+",off)[source(interoception)];"));
                     return false;
                 }
             }else{

@@ -1,16 +1,25 @@
 package group.chon.agent.argo;
 
 import group.chon.javino.Javino;
+import jason.RevisionFailedException;
+import jason.asSemantics.Unifier;
 import jason.asSyntax.Literal;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.logging.Logger;
+
 import jason.architecture.AgArch;
+import jason.asSyntax.PredicateIndicator;
+import jason.asSyntax.Structure;
+import jason.asSyntax.Term;
 
 public class Argo extends AgArch {
 
     public static final String DEFAULT_PORT = "COM1";
+
+    private String argoVersion = "1.3-pre";
 
     public Javino javino = new Javino();
 
@@ -21,6 +30,8 @@ public class Argo extends AgArch {
     private long limit = 0;
 
     public Boolean blocked = true;
+
+    Logger logger = Logger.getLogger("ARGO");
 
     public static Argo getArgoArch(AgArch currentArch) {
         if (currentArch == null) {
@@ -34,6 +45,7 @@ public class Argo extends AgArch {
 
     @Override
     public void init() throws Exception {
+        logger.info("Using version "+argoVersion);
         super.init();
         this.setPort(DEFAULT_PORT);
     }
@@ -50,20 +62,40 @@ public class Argo extends AgArch {
         int cont;
         List<Literal> jPercept = new ArrayList<Literal>();
         try {
+            removeBeliefsBySource("proprioception");
+            removeBeliefsBySource("interoception");
+            removeBeliefsBySource("exteroception");
             if (this.javino.requestData(this.port, "getPercepts")) {
                 String rwPercepts = this.javino.getData();
+
                 if (rwPercepts.contains(";")) {
                     String[] perception = rwPercepts.split(";");
                     for (cont = 0; cont < perception.length; cont++) {
-                        jPercept.add(Literal.parseLiteral(perception[cont]));
+                        /* adopting source percepts from body*/
+                        if (perception[cont].endsWith("[p]")) {
+                            getTS().getAg().getBB().add(Literal.parseLiteral(perception[cont].replace("[p]","[source(proprioception)]")));
+                        }else if (perception[cont].endsWith("[i]")) {
+                            getTS().getAg().getBB().add(Literal.parseLiteral(perception[cont].replace("[i]","[source(interoception)]")));
+                        }else if (perception[cont].endsWith("[e]")) {
+                            getTS().getAg().getBB().add(Literal.parseLiteral(perception[cont].replace("[e]","[source(exteroception)]")));
+                        }else{
+                            jPercept.add(Literal.parseLiteral(perception[cont]));
+                        }
                     }
                 } else if (rwPercepts != null && !rwPercepts.isEmpty()) {
-                    jPercept.add(Literal.parseLiteral(rwPercepts));
+                    if(rwPercepts.endsWith("[p]")){
+                        getTS().getAg().getBB().add(Literal.parseLiteral(rwPercepts.replace("[p]","[source(proprioception)]")));
+                    }else if (rwPercepts.endsWith("[i]")){
+                        getTS().getAg().getBB().add(Literal.parseLiteral(rwPercepts.replace("[i]","[source(interoception)]")));
+                    }else if (rwPercepts.endsWith("[e]")){
+                        getTS().getAg().getBB().add(Literal.parseLiteral(rwPercepts.replace("[e]","[source(exteroception)]")));
+                    }else{
+                        jPercept.add(Literal.parseLiteral(rwPercepts));
+                    }
                 } else {
                     this.getTS().getLogger().warning("[WARNING] There is no message coming from sensors.");
                 }
             }
-
             return jPercept;
         } catch (Exception e) {
             return null;
@@ -115,4 +147,18 @@ public class Argo extends AgArch {
         this.blocked = blocked;
     }
 
+    public void removeBeliefsBySource(String source) throws RevisionFailedException {
+        for (Literal belief : getTS().getAg().getBB()) {
+            if (belief.hasAnnot()) {
+                for (Term annotation : belief.getAnnots()) {
+                    if (annotation.isStructure()) {
+                        Structure annot = (Structure) annotation;
+                        if (annot.getFunctor().equals("source") && annot.getTerm(0).equals(Literal.parseLiteral(source))) {
+                            getTS().getAg().delBel(belief);
+                        }
+                    }
+                }
+            }
+        }
+    }
 }
