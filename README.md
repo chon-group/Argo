@@ -9,7 +9,7 @@ ARGO is a customized [Jason](https://github.com/jason-lang/jason) agent architec
 ### Argo FAQ (Frequently asked question):
 - How to use the ARGO in a Jason project: [Argo Library for Jason](https://github.com/chon-group/Argo/wiki/Importing-to-Jason)
 
-- How to use the ARGO in a JaCaMo project: [Argo Package for JaCaMo](https://github.com/chon-group/Argo/wiki/Importing-to-JaCaMo)
+- How to use the ARGO in a JaCaMo project: [Argo Package for JaCaMo](https://github.com/chon-group/Argo/wiki/Argo-Hello-World-with-JaCaMo)
 
 - For more information: See the [__ARGO Wiki__](https://github.com/chon-group/Argo/wiki).
 
