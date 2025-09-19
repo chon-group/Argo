@@ -52,6 +52,7 @@ public class Argo extends AgArch {
 
     @Override
     public Collection<Literal> perceive() {
+        Literal newBelief;
         long perceiving = System.nanoTime();
 
         if (((perceiving - this.lastPerceived) < this.limit) || this.blocked) {
@@ -73,7 +74,10 @@ public class Argo extends AgArch {
                     for (cont = 0; cont < perception.length; cont++) {
                         /* adopting source percepts from body*/
                         if (perception[cont].endsWith("[p]")) {
-                            getTS().getAg().getBB().add(Literal.parseLiteral(perception[cont].replace("[p]","[source(proprioception)]")));
+                            newBelief = Literal.parseLiteral(perception[cont].replace("[p]","[source(proprioception)]"));
+                            if (getTS().getAg().getBB().) {
+                                getTS().getAg().getBB().add(Literal.parseLiteral(newBelief));
+                            }
                         }else if (perception[cont].endsWith("[i]")) {
                             getTS().getAg().getBB().add(Literal.parseLiteral(perception[cont].replace("[i]","[source(interoception)]")));
                         }else if (perception[cont].endsWith("[e]")) {
