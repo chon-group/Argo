@@ -12,7 +12,6 @@ import jason.architecture.AgArch;
 
 public class Argo extends AgArch {
 
-    private Logger logger;
     public static final String DEFAULT_PORT = "COM1";
 
     private Javino javino = new Javino();
@@ -38,18 +37,18 @@ public class Argo extends AgArch {
     @Override
     public void init() throws Exception {
         super.init();
-        this.logger = Logger.getLogger(getAgName());
         this.javino.infoPortStatus(true);
         this.javino.timeout(2000);
         this.setPort(DEFAULT_PORT);
+        this.getTS().getLogger().info("ARGO Agent Architecture (1.2.1)");
     }
 
     @Override
     public Collection<Literal> perceive() {
-        long perceiving = System.nanoTime();
+        long perceiving = System.currentTimeMillis();
         if (((perceiving - getLastPerceived()) < getLimit()) || isBlocked()) {return null;}
 
-        logger.fine("[ARGO] Perceiving...");
+        this.getTS().getLogger().fine("[ARGO] Perceiving ...");
         int cont;
         List<Literal> jPercept = new ArrayList<Literal>();
         try {
@@ -65,13 +64,16 @@ public class Argo extends AgArch {
                 } else {
                     this.getTS().getLogger().warning("[WARNING] There is no message coming from sensors.");
                 }
+                this.getTS().getLogger().fine("\t"+rwPercepts);
+            }else{
+                this.getTS().getLogger().severe("ERROR this.javino.requestData == false");
             }
             this.setLastPerceived();
         } catch (Exception e) {
             this.setLastPerceived();
             return null;
         }
-        logger.fine("[ARGO] Perceived!");
+        this.getTS().getLogger().fine("[ARGO] Perceived!");
         return jPercept;
     }
 
@@ -101,7 +103,7 @@ public class Argo extends AgArch {
     }
 
     public void setLastPerceived() {
-        this.lastPerceived = System.nanoTime();
+        this.lastPerceived = System.currentTimeMillis();
     }
 
     public long getLimit() {
