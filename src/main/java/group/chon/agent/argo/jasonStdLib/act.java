@@ -16,11 +16,11 @@ public class act extends DefaultInternalAction {
 
     @Override
     public Object execute(TransitionSystem ts, Unifier un, Term[] args) throws Exception {
-
          final Argo argoArch = Argo.getArgoArch(ts.getAgArch());
             if (argoArch != null) {
                 Term action = args[0];
                 if (argoArch.getJavino().sendCommand(argoArch.getPort(), action.toString())) {
+                    argoArch.setLastPerceived();
                     return true;
                 } else {
                     String PORT = argoArch.getPort();
@@ -30,6 +30,7 @@ public class act extends DefaultInternalAction {
                     }
                     ts.getAg().getBB().remove(Literal.parseLiteral("port("+PORTshortNAME+",on);"));
                     ts.getAg().getBB().add(Literal.parseLiteral("port("+PORTshortNAME+",off);"));
+                    argoArch.setLastPerceived();
                     return false;
                 }
             }else{
