@@ -12,6 +12,12 @@ import jason.architecture.AgArch;
 
 public class Argo extends AgArch {
 
+    private boolean CAN_SLEEP = false;
+    private int MIN_TIME_NAP = 50;
+    private int MAX_TIME_NAP = 250;
+
+    private final String VERSION = "1.2.4";
+
     public static final String DEFAULT_PORT = "COM1";
 
     private Javino javino = new Javino();
@@ -19,8 +25,9 @@ public class Argo extends AgArch {
     private String port = "";
 
     private long lastPerceived = 0;
+    private long lastWakeUp = 0;
 
-    private int limit = 250;
+    private int limit = 0;
 
     public Boolean blocked = true;
 
@@ -40,7 +47,7 @@ public class Argo extends AgArch {
         this.javino.infoPortStatus(true);
         this.javino.timeout(2000);
         this.setPort(DEFAULT_PORT);
-        this.getTS().getLogger().info("ARGO Agent Architecture (1.2.1)");
+        this.getTS().getLogger().info("ARGO Agent Architecture ["+this.VERSION+"]");
     }
 
     @Override
@@ -77,10 +84,31 @@ public class Argo extends AgArch {
         return jPercept;
     }
 
-    /*@Override
+    @Override
     public boolean canSleep() {
-        return false;
-    }*/
+        boolean isCan;
+        if (this.CAN_SLEEP) {                                                // defined by .argo.port(P,true); --> canSleep(true)
+            isCan = true;
+        } else{
+            long elapsed = System.currentTimeMillis() - getLastWakeUp();    // milliseconds after last canSleep(false)
+            if (elapsed < MIN_TIME_NAP ){                                   // has not slept for MIN_TIME_NAP yet
+                isCan = true;
+            }else{
+                if(getLimit() <= 0){                                        // if was not defined a .argo.limit(M)
+                    isCan = elapsed < MAX_TIME_NAP;                         // can sleep until MAX_TIME_NAP
+                }else{                                                      // if was defined a .argo.limit(M)
+                    isCan = elapsed < Math.min(getLimit(), MAX_TIME_NAP);   // can sleep only until M, if M < MAX_TIME_SLEEPING
+                }
+            }
+        }
+        if(!isCan){setLastWakeUp();}                                        // if agent needs wake-up, save the time
+        //this.getTS().getLogger().fine("[ARGO] canSleep("+isCan+")");
+        return isCan;
+    }
+
+    public void setCAN_SLEEP(boolean sleep){
+        this.CAN_SLEEP = sleep;
+    }
 
     public Javino getJavino() {
         return this.javino;
@@ -104,6 +132,14 @@ public class Argo extends AgArch {
 
     public void setLastPerceived() {
         this.lastPerceived = System.currentTimeMillis();
+    }
+
+    public long getLastWakeUp() {
+        return this.lastWakeUp;
+    }
+
+    public void setLastWakeUp() {
+        this.lastWakeUp = System.currentTimeMillis();
     }
 
     public long getLimit() {

@@ -6,7 +6,7 @@
 
     <groupId>com.github.chon-group</groupId>
     <artifactId>Argo</artifactId>
-    <version>1.2.2</version>
+    <version>1.2.5</version>
 
     <properties>
         <maven.compiler.source>21</maven.compiler.source>
