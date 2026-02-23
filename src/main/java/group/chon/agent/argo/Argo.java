@@ -16,7 +16,7 @@ public class Argo extends AgArch {
     private int MIN_TIME_NAP = 50;
     private int MAX_TIME_NAP = 250;
 
-    private final String VERSION = "1.2.4";
+    private final String VERSION = "1.2.6";
 
     public static final String DEFAULT_PORT = "COM1";
 
